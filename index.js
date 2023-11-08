@@ -11,14 +11,18 @@
 
 // console.log(`Server running at http://127.0.0.1:${PORT}/`);
 ////////
+import http from 'http'
+
 
 let products = [
   { id: "0", title: "mac book pro", price: "12453" },
   { id: "1", title: "iphone 15", price: "6453" },
 ];
 
-const http = require("http");
+// const http = require("http");
 const PORT = "8080";
+
+
 
 const handleError = (res, statusCode, massage) => {
   res.writeHead(statusCode, { "Content-Type": "text/plain" })
@@ -29,6 +33,8 @@ const handleError = (res, statusCode, massage) => {
 
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
+  const MATCH = req.url.match(/\/products\/([0-9]+)/);
+  const ID = req.url?.split('/')[2]
 
   if (req.url === "/" && req.method === "GET") {
   try {
@@ -42,10 +48,15 @@ const server = http.createServer((req, res) => {
   }
 
 
-  } else if (req.url === "/products" && req.method === "GET") {
+  } else if ( MATCH && req.method === "GET") {
     try {
+      const product = products.find((product) => product.id === ID)
+      if(!product) {
+        handleError(res, 404, `Product not found with ID ${ID}`)
+      }
+      console.log(ID);
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.write(JSON.stringify(products));
+      res.write(JSON.stringify(product));
       res.end();
     } catch (error) {
       handleError(res, 500, 'Server Error')
@@ -64,10 +75,15 @@ const server = http.createServer((req, res) => {
 
 
 
-  } else if (req.url === "/products" && req.method === "DELETE") {
+  } else if ( MATCH && req.method === "DELETE") {
     try {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.write('Product is deleted');
+      const product = products.find((product) => product.id === ID)
+      if(!product) {
+        handleError(res, 404, `Product want deleted not found with ID ${ID}`)
+      }
+      console.log(`product by Id ${ID} is deleted`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.write(JSON.stringify(product));
       res.end();
     } catch (error) {
       handleError(res, 500, 'Server Error')
@@ -75,10 +91,15 @@ const server = http.createServer((req, res) => {
 
 
 
-  } else if (req.url === "/products" && req.method === "PUT") {
+  } else if ( MATCH && req.method === "PUT") {
     try {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.write('Product is updated');
+      const product = products.find((product) => product.id === ID)
+      if(!product) {
+        handleError(res, 404, `Product updated not found with ID ${ID}`)
+      }
+      console.log(`product by Id ${ID} is updated`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.write(JSON.stringify(product));
       res.end();
     } catch (error) {
       handleError(res, 500, 'Server Error')
@@ -86,6 +107,9 @@ const server = http.createServer((req, res) => {
 
 
     
+  }else{
+
+    handleError(res, 404, 'Router is not found')
   }
 });
 
