@@ -17,13 +17,14 @@ import {parse} from 'querystring'
 import 'dotenv/config'
 
 
+
 // let products = [
 //   { id: "0", title: "mac book pro", price: "12453" },
 //   { id: "1", title: "iphone 15", price: "6453" },
 // ];
 
 // const http = require("http");
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3002;
 
 
 
@@ -63,42 +64,50 @@ const server = http.createServer(async (req, res) => {
   }
 
 
-  } else if ( req.url === "/products" && req.method === "GET") {
-    try {
-      const product = products.find((product) => product.id === ID)
-      if(!product) {
-        requestsError(res, 404, `Product not found with ID ${ID}`)
-      }
-      const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
-      requestsSuccess(res, 200, `returned all the product `, productFile)
-    } catch (error) {
-
-      requestsError(res, 500, error.massage)
-    }
-
-
-
   } 
-  else if ( MATCH && req.method === "GET") {
-    try {
-      const product = products.find((product) => product.id === ID)
-      if(!product) {
-        requestsError(res, 404, `Product not found with ID ${ID}`)
-        return
-      }
-      requestsSuccess(res, 200, `returned a single product by id ${ID}`, JSON.stringify(product))
-    } catch (error) {
+  // else if ( req.url === "/products" && req.method === "GET") {
+  //   try {
+  //     const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
 
-      requestsError(res, 500, error.massage)
-    }
+  //     const product = productFile.find((product) => product.id === ID)
+  //     if(!product) {
+  //       requestsError(res, 404, `Product not found with ID ${ID}`)
+  //     }
+  //     console.log(productFile);
+  //     requestsSuccess(res, 200, `returned all the product `, productFile)
+  //   } catch (error) {
+
+  //     requestsError(res, 500, error.massage)
+  //   }
 
 
 
-  } else if (req.url === "/products" && req.method === "POST") {
+  // } 
+  // else if ( MATCH && req.method === "GET") {
+  //   try {
+  //     const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
+
+  //     const product = productFile.find((product) => product.id === ID)
+  //     if(!product) {
+  //       requestsError(res, 404, `Product not found with ID ${ID}`)
+  //       return
+  //     }
+  //     requestsSuccess(res, 200, `returned a single product by id ${ID}`, JSON.stringify(productFile))
+  //   } catch (error) {
+
+  //     requestsError(res, 500, error.massage)
+  //   }
+
+
+
+  // } 
+  else if (req.url === "/products" && req.method === "POST") {
     try {
    let body = ''
+
    req.on('data', (chunk) => {
     body = body + chunk;
+    console.log(body);
    })
    req.on('end',async () => {
     const data = parse(body)
@@ -125,7 +134,30 @@ const server = http.createServer(async (req, res) => {
 
 
 
-  } else if ( MATCH && req.method === "DELETE") {
+  }else if (req.url === "/" && req.method === "POST") {
+    try {
+      //receive data from client 
+   let body = ''
+
+   req.on('data', (data) => {
+    body = body + data;
+    console.log(body);
+   })
+         //send response to client 
+   req.on('end', () => {
+    const data = parse(body)
+   
+    requestsSuccess(res, 201, `Received data `, data)
+   })
+
+    } catch (error) {
+      requestsError(res, 500, error.massage)
+    }
+
+
+
+  } 
+   else if ( MATCH && req.method === "DELETE") {
     try {
       const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
 
@@ -143,9 +175,12 @@ const server = http.createServer(async (req, res) => {
 
 
 
-  } else if ( MATCH && req.method === "PUT") {
+  } 
+  else if ( MATCH && req.method === "PUT") {
     try {
-      const product = products.find((product) => product.id === ID)
+      const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
+
+      const product = productFile.find((product) => product.id === ID)
       if(!product) {
         requestsError(res, 404, `Product updated not found with ID ${ID}`)
         return

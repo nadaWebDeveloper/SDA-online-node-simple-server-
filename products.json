@@ -1,4 +1,1 @@
-
-  [  { "id": "0", "title": "mac book pro", "price": "12453" },
-    { "id": "1", "title": "iphone 15", "price": "6453" }]
-  
+[{"id":"0","title":"mac book pro","price":"12453"},{"id":"1","title":"iphone 15","price":"6453"},{"id":"1699500432087","title":"undefined","price":null},{"id":"1699500466479","title":"undefined","price":null},{"id":"1699500598700","title":"undefined","price":null},{"id":"1699500707819"},{"id":"1699500735556","title":"undefined","price":null},{"id":"1699500845201","title":"undefined","price":null},{"id":"1699500899251","title":"undefined","price":null},{"id":"1699500908105","title":"undefined","price":null},{"id":"1699501276608","title":"\"undefined\"","price":null}]
