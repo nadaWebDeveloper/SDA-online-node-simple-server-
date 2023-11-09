@@ -12,16 +12,18 @@
 // console.log(`Server running at http://127.0.0.1:${PORT}/`);
 ////////
 import http from 'http'
-import parse from 'querystring'
+import fs from 'fs/promises'
+import {parse} from 'querystring'
+import 'dotenv/config'
 
 
-let products = [
-  { id: "0", title: "mac book pro", price: "12453" },
-  { id: "1", title: "iphone 15", price: "6453" },
-];
+// let products = [
+//   { id: "0", title: "mac book pro", price: "12453" },
+//   { id: "1", title: "iphone 15", price: "6453" },
+// ];
 
 // const http = require("http");
-const PORT = "8080";
+const PORT = process.env.PORT;
 
 
 
@@ -45,7 +47,7 @@ const requestsSuccess = (res, statusCode, massage , payload = {}) => {
   )
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const MATCH = req.url.match(/\/products\/([0-9]+)/);
   const ID = req.url?.split('/')[2]
@@ -56,7 +58,7 @@ const server = http.createServer((req, res) => {
     
   } catch (error) {
 
-    requestsError(res, 500, 'Server Error')
+    requestsError(res, 500, error.massage)
 
   }
 
@@ -67,10 +69,11 @@ const server = http.createServer((req, res) => {
       if(!product) {
         requestsError(res, 404, `Product not found with ID ${ID}`)
       }
-      requestsSuccess(res, 200, `returned all the product `, product)
+      const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
+      requestsSuccess(res, 200, `returned all the product `, productFile)
     } catch (error) {
 
-      requestsError(res, 500, 'Server Error')
+      requestsError(res, 500, error.massage)
     }
 
 
@@ -86,7 +89,7 @@ const server = http.createServer((req, res) => {
       requestsSuccess(res, 200, `returned a single product by id ${ID}`, JSON.stringify(product))
     } catch (error) {
 
-      requestsError(res, 500, 'Server Error')
+      requestsError(res, 500, error.massage)
     }
 
 
@@ -97,37 +100,45 @@ const server = http.createServer((req, res) => {
    req.on('data', (chunk) => {
     body = body + chunk;
    })
-   req.on('end', () => {
+   req.on('end',async () => {
     const data = parse(body)
+    console.log(data)
     const newProduct = {
       id: new Date().getTime().toString(),
       title: String(data.title),
       price: Number(data.price)
 
     }
-    products.push(newProduct)
-    requestsSuccess(res, 201, `created new  product `, JSON.stringify(product))
-    console.log(`product by Id ${ID} is created`);
+    const existProduct = JSON.parse(await fs.readFile('products.json', 'utf-8'))
+
+    existProduct.push(newProduct)
+
+    await fs.writeFile('products.json', JSON.stringify(existProduct))
+
+    requestsSuccess(res, 201, `created new  product `, JSON.stringify(existProduct))
+    console.log(`new product by Id ${ID} is created ${existProduct}`);
    })
 
     } catch (error) {
-      requestsError(res, 500, 'Server Error')
+      requestsError(res, 500, error.massage)
     }
 
 
 
   } else if ( MATCH && req.method === "DELETE") {
     try {
-      const product = products.find((product) => product.id === ID)
+      const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
+
+      const product = productFile.find((product) => product.id === ID)
       if(!product) {
         requestsError(res, 404, `Product want deleted not found with ID ${ID}`)
         return
       }
-      const filteredProducts = products.fill((product) => product.id !== ID);
-      products = filteredProducts;
-      requestsSuccess(res, 200, `delete a single product by id ${ID}`, JSON.stringify(product))
+      const filteredProducts = productFile.fill((product) => product.id !== ID);
+      productFile = filteredProducts;
+      requestsSuccess(res, 200, `delete a single product by id ${ID}`, JSON.stringify(productFile))
     } catch (error) {
-      requestsError(res, 500, 'Server Error')
+      requestsError(res, 500, error.massage)
     }
 
 
@@ -153,12 +164,12 @@ const server = http.createServer((req, res) => {
       product.price =  Number(updateData.price)
      }
        products.push(newProduct)
-       requestsSuccess(res, 201, `created new  product `, JSON.stringify(product))
+       requestsSuccess(res, 200, `created new  product `, JSON.stringify(product))
        console.log(`product by Id ${ID} is updated`);
       })
 
     } catch (error) {
-      requestsError(res, 500, 'Server Error')
+      requestsError(res, 500, error.massage)
     }
 
 
