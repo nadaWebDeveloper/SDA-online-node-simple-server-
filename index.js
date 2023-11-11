@@ -15,13 +15,10 @@ import http from 'http'
 import fs from 'fs/promises'
 import {parse} from 'querystring'
 import 'dotenv/config'
+import { error } from 'console';
 
 
 
-// let products = [
-//   { id: "0", title: "mac book pro", price: "12453" },
-//   { id: "1", title: "iphone 15", price: "6453" },
-// ];
 
 // const http = require("http");
 const PORT = process.env.PORT || 3002;
@@ -32,7 +29,8 @@ const requestsError = (res, statusCode, massage) => {
   res.writeHead(statusCode, { "Content-Type": "application/json" })
   res.end(
     JSON.stringify({
-      message: massage
+      message: `${massage}`,
+      fails: `fail to deleted `
     })
   )
 }
@@ -49,9 +47,11 @@ const requestsSuccess = (res, statusCode, massage , payload = {}) => {
 }
 
 const server = http.createServer(async (req, res) => {
+
   res.setHeader("Access-Control-Allow-Origin", "*");
   const MATCH = req.url.match(/\/products\/([0-9]+)/);
   const ID = req.url?.split('/')[2]
+
 
   if (req.url === "/" && req.method === "GET") {
   try {
@@ -65,67 +65,60 @@ const server = http.createServer(async (req, res) => {
 
 
   } 
-  // else if ( req.url === "/products" && req.method === "GET") {
-  //   try {
-  //     const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
+  else if ( req.url === "/products" && req.method === "GET") {
+    try {
+      const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
+      console.log(productFile);
+      requestsSuccess(res, 200, `returned all the product `,JSON.stringify(productFile))
+    } catch (error) {
 
-  //     const product = productFile.find((product) => product.id === ID)
-  //     if(!product) {
-  //       requestsError(res, 404, `Product not found with ID ${ID}`)
-  //     }
-  //     console.log(productFile);
-  //     requestsSuccess(res, 200, `returned all the product `, productFile)
-  //   } catch (error) {
+      requestsError(res, 500, error.massage)
+    }
+  }
 
-  //     requestsError(res, 500, error.massage)
-  //   }
+  else if ( MATCH && req.method === "GET") {
+    try {
+      const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
 
+      const product = productFile.find((product) => product.id === ID)
+      if(!product) {
+        requestsError(res, 404, `Product not found with ID ${ID}`)
+        return;
+      }
+      requestsSuccess(res, 200, `returned a single product by id ${ID}`, JSON.stringify(product))
+    } catch (error) {
 
-
-  // } 
-  // else if ( MATCH && req.method === "GET") {
-  //   try {
-  //     const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
-
-  //     const product = productFile.find((product) => product.id === ID)
-  //     if(!product) {
-  //       requestsError(res, 404, `Product not found with ID ${ID}`)
-  //       return
-  //     }
-  //     requestsSuccess(res, 200, `returned a single product by id ${ID}`, JSON.stringify(productFile))
-  //   } catch (error) {
-
-  //     requestsError(res, 500, error.massage)
-  //   }
+      requestsError(res, 500, error.massage)
+    }
 
 
 
-  // } 
+  }
   else if (req.url === "/products" && req.method === "POST") {
     try {
    let body = ''
-
+//receive data
    req.on('data', (chunk) => {
     body = body + chunk;
-    console.log(body);
    })
    req.on('end',async () => {
     const data = parse(body)
-    console.log(data)
+
     const newProduct = {
       id: new Date().getTime().toString(),
       title: String(data.title),
       price: Number(data.price)
 
     }
+    console.log(newProduct);
     const existProduct = JSON.parse(await fs.readFile('products.json', 'utf-8'))
 
     existProduct.push(newProduct)
 
     await fs.writeFile('products.json', JSON.stringify(existProduct))
 
-    requestsSuccess(res, 201, `created new  product `, JSON.stringify(existProduct))
-    console.log(`new product by Id ${ID} is created ${existProduct}`);
+    requestsSuccess(res, 201, `created new  product `, existProduct)
+  
    })
 
     } catch (error) {
@@ -134,41 +127,42 @@ const server = http.createServer(async (req, res) => {
 
 
 
-  }else if (req.url === "/" && req.method === "POST") {
-    try {
-      //receive data from client 
-   let body = ''
+  }
+  // else if (req.url === "/" && req.method === "POST") {
+  //   try {
+  //     //receive data from client 
+  //  let body = ''
 
-   req.on('data', (data) => {
-    body = body + data;
-    console.log(body);
-   })
-         //send response to client 
-   req.on('end', () => {
-    const data = parse(body)
+  //  req.on('data', (data) => {
+  //   body = body + data;
+  //   console.log(body);
+  //  })
+  //        //send response to client 
+  //  req.on('end', () => {
+  //   const data = parse(body)
    
-    requestsSuccess(res, 201, `Received data `, data)
-   })
+  //   requestsSuccess(res, 201, `Received data `, JSON.stringify(data))
+  //  })
 
-    } catch (error) {
-      requestsError(res, 500, error.massage)
-    }
+  //   } catch (error) {
+  //     requestsError(res, 500, error.massage)
+  //   }
 
 
 
-  } 
+  // } 
    else if ( MATCH && req.method === "DELETE") {
     try {
       const productFile = JSON.parse(await fs.readFile('products.json', 'utf-8'))
-
       const product = productFile.find((product) => product.id === ID)
       if(!product) {
         requestsError(res, 404, `Product want deleted not found with ID ${ID}`)
-        return
+        return;
       }
-      const filteredProducts = productFile.fill((product) => product.id !== ID);
-      productFile = filteredProducts;
-      requestsSuccess(res, 200, `delete a single product by id ${ID}`, JSON.stringify(productFile))
+      const filteredProducts = productFile.filter((product) => product.id !== ID);
+      productFile  = filteredProducts;
+      requestsSuccess(res, 200, `delete a single product by id ${ID}`)
+
     } catch (error) {
       requestsError(res, 500, error.massage)
     }
@@ -192,15 +186,16 @@ const server = http.createServer(async (req, res) => {
       })
       req.on('end', () => {
     const updateData = parse(body)
-    if(String(data.title)){
-         product.title =  String(updateData.title)
+    const {title, price} = updateData
+
+    if(String(title)){
+      console.log(product.title, ": " ,String(title));
+         product.title =  String(title)
     }
-    if(Number(data.price)){
-      product.price =  Number(updateData.price)
+    if(Number(price)){
+      product.price =  Number(price)
      }
-       products.push(newProduct)
-       requestsSuccess(res, 200, `created new  product `, JSON.stringify(product))
-       console.log(`product by Id ${ID} is updated`);
+       requestsSuccess(res, 200, `product by Id ${ID} is updated`, JSON.stringify(product))
       })
 
     } catch (error) {
