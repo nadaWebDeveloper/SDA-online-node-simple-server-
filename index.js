@@ -11,6 +11,77 @@
 
 // console.log(`Server running at http://127.0.0.1:${PORT}/`);
 ////////
+// import fs from 'fs/promises'
+
+
+// const PRODUCTS =[
+//     {id: 0 , title:'mac book pro', price: 54627},
+//     {id: 1 , title:'iphone 14', price: 627},
+//     {id: 2 , title:'printer', price: 327}
+// ]
+
+
+// const createProducts = async () => {
+
+//     try {
+//         await fs.writeFile('products.json' , JSON.stringify(PRODUCTS))
+//         console.log(JSON.stringify(PRODUCTS));
+        
+//     } catch (error) {
+//         console.log(error.message);
+        
+//     }
+
+// }
+
+// createProducts()
+
+
+//better Formula to write code file read or write
+
+// export const getAllProducts = async () =>
+// {
+//     try {
+//         const product = await fs.readFile('products.json', 'utf-8')
+//         return
+//         // console.log(JSON.parse(product));
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// }
+
+// getAllProducts();
+
+
+
+//to create & write into the file
+// fs.writeFile('products.json', JSON.stringify(PRODUCTS),(error) => {
+
+//     if(error){
+//       console.log(error.message);
+//     }else{
+//       console.log(`file is created `,JSON.stringify(PRODUCTS) );
+//     }
+// } )
+
+
+//to read from the file
+// fs.readFile('products.json', 'utf-8' , (error, data) => {
+//     if(error){
+//         console.log(error.message);
+//     }else{
+//         console.log(data);
+//     }
+// })
+
+// to delete the file
+// fs.unlink('products.json', (error)=>{
+//     if(error){
+//         console.log(error.message);
+//     }else{
+//         console.log('is deleted');
+//     }
+// })
 import http from 'http'
 import fs from 'fs/promises'
 import {parse} from 'querystring'
